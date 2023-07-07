@@ -59,7 +59,9 @@ func NewDbContext(conn ConnectionString, logger *zap.Logger, migrations []Migrat
 }
 
 func (h *dbContext) Enqueue(ctx context.Context, id string, entityPtr any, info string) error {
-	h.healthCheck()
+	if err := h.healthCheck(); err != nil {
+		return err
+	}
 
 	if reflect.TypeOf(entityPtr).Kind() != reflect.Pointer {
 		return errors.New("entity param must be a pointer")
@@ -136,7 +138,9 @@ func (h *dbContext) Dequeue(ctx context.Context) error {
 
 // begin a new transaction
 func (h *dbContext) BeginTransaction(ctx context.Context) error {
-	h.healthCheck()
+	if err := h.healthCheck(); err != nil {
+		return err
+	}
 	var err error = nil
 	options := sql.TxOptions{Isolation: sql.LevelDefault, ReadOnly: false}
 	if h.trx, err = h.dbClient.BeginTx(ctx, &options); err != nil {
@@ -215,7 +219,9 @@ func (h dbContext) Sql(ctx context.Context, query string, args ...any) error {
 
 // Read entity
 func (h dbContext) Read(ctx context.Context, entityPtr any, filter map[string]any) (*sql.Rows, error) {
-	h.healthCheck()
+	if err := h.healthCheck(); err != nil {
+		return nil, err
+	}
 	query, values, tableName := sqlb.BuildRead(ctx, entityPtr, filter)
 	rows, err := h.dbClient.QueryContext(ctx, query, values...)
 
@@ -284,9 +290,7 @@ func (h *dbContext) migrate() error {
 		h.logger.Debug("migration table created")
 	}
 	// migrate for any one did not migrate
-	h.runMigration(migrationsHistory)
-	h.logger.Debug("migration done")
-	return nil
+	return h.runMigration(migrationsHistory)
 }
 
 func (h *dbContext) runMigration(migrationHistory map[string]string) error {
@@ -337,7 +341,7 @@ func (h *dbContext) healthCheck() error {
 			return err
 		}
 	} else {
-		h.migrate()
+		return h.migrate()
 	}
 	return nil
 }

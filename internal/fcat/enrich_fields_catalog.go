@@ -1,9 +1,10 @@
 package fcat
 
 import (
-	"maya/cons"
 	"reflect"
 	"strconv"
+
+	"github.com/edervzz/maya/cons"
 )
 
 type FieldCatalog struct {

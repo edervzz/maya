@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"maya/cons"
-	"maya/internal/fcat"
-	"maya/internal/hcons"
-	"maya/internal/sqlb"
 	"os"
 	"reflect"
 	"sort"
 	"strings"
+
+	"github.com/edervzz/maya/cons"
+	"github.com/edervzz/maya/internal/fcat"
+	"github.com/edervzz/maya/internal/hcons"
+	"github.com/edervzz/maya/internal/sqlb"
 
 	"time"
 

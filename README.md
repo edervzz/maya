@@ -93,7 +93,7 @@ Here and example pass it via middleware
 func UseUserInfoMiddl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := "email@mail.com" + ":" + r.RemoteAddr
-		ctx := context.WithValue(r.Context(), "maya-user-editor", user)
+		ctx := context.WithValue(r.Context(), "github.com/edervzz/maya-user-editor", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

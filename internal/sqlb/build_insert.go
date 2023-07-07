@@ -3,8 +3,9 @@ package sqlb
 import (
 	"context"
 	"fmt"
-	"maya/internal/fcat"
 	"strings"
+
+	"github.com/edervzz/maya/internal/fcat"
 )
 
 // build insert form => "INSERT INTO <tab_name> (field1, field2, fieldN) VALUES(?,?,?);" and return query + values

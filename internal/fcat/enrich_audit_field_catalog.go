@@ -2,8 +2,9 @@ package fcat
 
 import (
 	"context"
-	"maya/cons"
 	"strings"
+
+	"github.com/edervzz/maya/cons"
 
 	"time"
 )

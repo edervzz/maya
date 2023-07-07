@@ -3,8 +3,9 @@ package sqlb
 import (
 	"context"
 	"fmt"
-	"maya/internal/fcat"
 	"strings"
+
+	"github.com/edervzz/maya/internal/fcat"
 )
 
 func BuildRead(ctx context.Context, entity any, filter map[string]any) (string, []any, string) {

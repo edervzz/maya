@@ -3,9 +3,10 @@ package sqlb
 import (
 	"context"
 	"fmt"
-	"maya/cons"
-	"maya/internal/fcat"
 	"strings"
+
+	"github.com/edervzz/maya/cons"
+	"github.com/edervzz/maya/internal/fcat"
 )
 
 // build update form => "UPDATE <tab_name> SET field1 = ?, field2 = ? WHERE fieldN = ?;" and return query + values

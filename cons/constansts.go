@@ -11,5 +11,5 @@ const (
 	CREATED_AT       = "created_at"
 	UPDATE_BY        = "updated_by"
 	UPDATE_AT        = "updated_at"
-	MAYA_USER_EDITOR = "maya-user-editor"
+	MAYA_USER_EDITOR = "github.com/edervzz/maya-user-editor"
 )

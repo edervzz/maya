@@ -1,8 +1,9 @@
 package fcat
 
 import (
-	"maya/cons"
 	"reflect"
+
+	"github.com/edervzz/maya/cons"
 )
 
 func EnrichTableName(entity any) string {

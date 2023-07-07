@@ -14,7 +14,7 @@ This package is inspired on EF, GORM and others current ORMs.
 - [Migrations](#migrations)
 - [Entities](#entities)
 - [Auditable fields](#auditable-fields)
-- [Abstraction](#abstrations)
+- [Abstractions](#abstractions)
 - [Environment variables](#environment-variables)
 - [Support packages](#support-packages)
 ---------------------------------------

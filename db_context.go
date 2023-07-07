@@ -225,13 +225,12 @@ func (h dbContext) Read(ctx context.Context, entityPtr any, filter map[string]an
 	return rows, err
 }
 
-func (h *dbContext) migrate() {
+func (h *dbContext) migrate() error {
 	// 1. check if db exists
 	rows, err := h.dbClient.Query(
 		fmt.Sprintf("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '%s'", h.dbname))
 	if err != nil {
-		h.logger.Debug(err.Error())
-		os.Exit(1)
+		return err
 	}
 
 	// migration history
@@ -240,8 +239,7 @@ func (h *dbContext) migrate() {
 	if rows.Next() {
 		// 2. use db
 		if _, err = h.dbClient.Exec("USE " + h.dbname); err != nil {
-			h.logger.Debug(err.Error())
-			os.Exit(1)
+			return err
 		}
 		h.logger.Debug("db in use")
 		// 3. read all migrations done
@@ -255,48 +253,43 @@ func (h *dbContext) migrate() {
 		} else {
 			// create table lock
 			if _, err = h.dbClient.Exec(hcons.LockTable); err != nil {
-				h.logger.Debug(err.Error())
-				os.Exit(1)
+				return err
 			}
 			h.logger.Debug("lock table created")
 			// create migration table whether db exists but not table
 			if _, err = h.dbClient.Exec(hcons.MigrationsTable); err != nil {
-				h.logger.Debug(err.Error())
-				os.Exit(1)
+				return err
 			}
 			h.logger.Debug("migration table created")
 		}
 	} else {
 		// 4. create database from scratch
 		if _, err = h.dbClient.Exec("CREATE DATABASE " + h.dbname); err != nil {
-			h.logger.Debug(err.Error())
-			os.Exit(1)
+			return err
 		}
 		// 4.1 use database
 		if _, err = h.dbClient.Exec("USE " + h.dbname); err != nil {
-			h.logger.Debug(err.Error())
-			os.Exit(1)
+			return err
 		}
 		h.logger.Debug("db created and in use")
 		// 4.2 create table lock
 		if _, err = h.dbClient.Exec(hcons.LockTable); err != nil {
-			h.logger.Debug(err.Error())
-			os.Exit(1)
+			return err
 		}
 		h.logger.Debug("lock table created")
 		// 4.3 create migration table and run migration
 		if _, err = h.dbClient.Exec(hcons.MigrationsTable); err != nil {
-			h.logger.Debug(err.Error())
-			os.Exit(1)
+			return err
 		}
 		h.logger.Debug("migration table created")
 	}
 	// migrate for any one did not migrate
 	h.runMigration(migrationsHistory)
 	h.logger.Debug("migration done")
+	return nil
 }
 
-func (h *dbContext) runMigration(migrationHistory map[string]string) {
+func (h *dbContext) runMigration(migrationHistory map[string]string) error {
 	version := "1.0"
 	downMigration := false
 	for _, t := range h.migrations {
@@ -317,17 +310,18 @@ func (h *dbContext) runMigration(migrationHistory map[string]string) {
 			for _, dd := range t.Down {
 				_, err := h.dbClient.Exec(dd)
 				if err != nil {
-					h.logger.Debug(err.Error())
+					return err
 				}
 			}
 			break
 		}
 		h.dbClient.Exec("INSERT into _MayaMigrationsHistory (id, version) VALUES (?,?)", t.ID, version)
 	}
+	return nil
 }
 
 // Connection health check. Try to open connection to DB and process migrations when they are pending and active.
-func (h *dbContext) healthCheck() {
+func (h *dbContext) healthCheck() error {
 	// 1. try open connection
 	if h.dbClient == nil {
 		if client, err := sql.Open("mysql", h.connectionString); err != nil {
@@ -340,11 +334,10 @@ func (h *dbContext) healthCheck() {
 	// 2. use db or migrate, migration is activated by default
 	if isMigrate := os.Getenv(cons.DB_MIGRATE); strings.ToLower(isMigrate) == "false" {
 		if _, err := h.dbClient.Exec("USE " + h.dbname); err != nil {
-			h.logger.Debug(err.Error())
-			os.Exit(1)
+			return err
 		}
 	} else {
 		h.migrate()
 	}
-	h.logger.Debug("db is ok")
+	return nil
 }

@@ -29,6 +29,7 @@ type dbContext struct {
 	dbname           string
 	migrations       []Migration
 	enqueueTable     []enqueue
+	isMigratedDone   bool
 }
 
 type ConnectionString struct {
@@ -232,6 +233,10 @@ func (h dbContext) Read(ctx context.Context, entityPtr any, filter map[string]an
 }
 
 func (h *dbContext) migrate() error {
+	if h.isMigratedDone {
+		return nil
+	}
+
 	// 1. check if db exists
 	rows, err := h.dbClient.Query(
 		fmt.Sprintf("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '%s'", h.dbname))
@@ -321,6 +326,7 @@ func (h *dbContext) runMigration(migrationHistory map[string]string) error {
 		}
 		h.dbClient.Exec("INSERT into _MayaMigrationsHistory (id, version) VALUES (?,?)", t.ID, version)
 	}
+	h.isMigratedDone = true
 	return nil
 }
 

@@ -45,7 +45,7 @@ type enqueue struct {
 }
 
 // constructor
-func NewDbContext(conn ConnectionString, logger *zap.Logger, migrations []Migration) *dbContext {
+func NewDbContext(conn ConnectionString, logger *zap.Logger, migrations []Migration) IDbContext {
 	sort.Sort(ByID(migrations))
 	return &dbContext{
 		dbClient:         nil,

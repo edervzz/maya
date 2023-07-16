@@ -70,12 +70,12 @@ func (h *dbContext) Enqueue(ctx context.Context, id string, entityPtr any, info 
 
 	tableName := fcat.EnrichTableName(entityPtr)
 	if tableName == "" {
-		h.logger.Debug("entity not found or misformmed")
+		h.logger.Info("entity not found or misformmed")
 		return errors.New("entity not found or misformmed")
 	}
 
 	if h.trx != nil {
-		h.logger.Debug("enqueue cannot be called in middle of transactions")
+		h.logger.Info("enqueue cannot be called in middle of transactions")
 		return errors.New("enqueue cannot be called in middle of transactions")
 	}
 	datetime := time.Now().UTC().Format(time.DateTime)
@@ -87,15 +87,15 @@ func (h *dbContext) Enqueue(ctx context.Context, id string, entityPtr any, info 
 		info,
 	)
 	if err != nil {
-		h.logger.Debug(err.Error())
+		h.logger.Info(err.Error())
 		return err
 	}
 	if sqlresult == nil {
-		h.logger.Debug("enqueue cannot be reached, no result")
+		h.logger.Info("enqueue cannot be reached, no result")
 		return errors.New("enqueue cannot be reached, no result")
 	}
 	if lastid, _ := sqlresult.LastInsertId(); lastid < 0 {
-		h.logger.Debug("enqueue cannot be reached, no lastId")
+		h.logger.Info("enqueue cannot be reached, no lastId")
 		return errors.New("enqueue cannot be reached, no lastId")
 	}
 
@@ -114,7 +114,7 @@ func (h *dbContext) Dequeue(ctx context.Context) error {
 	}
 
 	if h.trx != nil {
-		h.logger.Debug("dequeue cannot be called in middle of transactions")
+		h.logger.Info("dequeue cannot be called in middle of transactions")
 		return errors.New("dequeue cannot be called in middle of transactions")
 	}
 	errlog := []string{}
@@ -126,7 +126,7 @@ func (h *dbContext) Dequeue(ctx context.Context) error {
 		)
 		if err != nil {
 			errlog = append(errlog, err.Error())
-			h.logger.Debug(err.Error())
+			h.logger.Info(err.Error())
 		}
 	}
 
@@ -145,7 +145,7 @@ func (h *dbContext) BeginTransaction(ctx context.Context) error {
 	var err error = nil
 	options := sql.TxOptions{Isolation: sql.LevelDefault, ReadOnly: false}
 	if h.trx, err = h.dbClient.BeginTx(ctx, &options); err != nil {
-		h.logger.Debug(err.Error())
+		h.logger.Info(err.Error())
 	}
 	return err
 }
@@ -252,7 +252,7 @@ func (h *dbContext) migrate() error {
 		if _, err = h.dbClient.Exec("USE " + h.dbname); err != nil {
 			return err
 		}
-		h.logger.Debug("db in use")
+		h.logger.Info("db in use")
 		// 3. read all migrations done
 		if rows, err := h.dbClient.Query("SELECT id, version FROM _MayaMigrationsHistory"); err == nil {
 			// collect migration done
@@ -266,12 +266,12 @@ func (h *dbContext) migrate() error {
 			if _, err = h.dbClient.Exec(hcons.LockTable); err != nil {
 				return err
 			}
-			h.logger.Debug("lock table created")
+			h.logger.Info("lock table created")
 			// create migration table whether db exists but not table
 			if _, err = h.dbClient.Exec(hcons.MigrationsTable); err != nil {
 				return err
 			}
-			h.logger.Debug("migration table created")
+			h.logger.Info("migration table created")
 		}
 	} else {
 		// 4. create database from scratch
@@ -282,17 +282,17 @@ func (h *dbContext) migrate() error {
 		if _, err = h.dbClient.Exec("USE " + h.dbname); err != nil {
 			return err
 		}
-		h.logger.Debug("db created and in use")
+		h.logger.Info("db created and in use")
 		// 4.2 create table lock
 		if _, err = h.dbClient.Exec(hcons.LockTable); err != nil {
 			return err
 		}
-		h.logger.Debug("lock table created")
+		h.logger.Info("lock table created")
 		// 4.3 create migration table and run migration
 		if _, err = h.dbClient.Exec(hcons.MigrationsTable); err != nil {
 			return err
 		}
-		h.logger.Debug("migration table created")
+		h.logger.Info("migration table created")
 	}
 	// migrate for any one did not migrate
 	return h.runMigration(migrationsHistory)
@@ -310,7 +310,7 @@ func (h *dbContext) runMigration(migrationHistory map[string]string) error {
 		for _, dd := range t.Up {
 			_, err := h.dbClient.Exec(dd)
 			if err != nil {
-				h.logger.Debug(err.Error())
+				h.logger.Info(err.Error())
 				downMigration = true
 				break
 			}
@@ -335,7 +335,7 @@ func (h *dbContext) healthCheck() error {
 	// 1. try open connection
 	if h.dbClient == nil {
 		if client, err := sql.Open("mysql", h.connectionString); err != nil {
-			h.logger.Debug(err.Error())
+			h.logger.Info(err.Error())
 			os.Exit(1)
 		} else {
 			h.dbClient = client

@@ -232,7 +232,7 @@ func (h dbContext) Read(ctx context.Context, entityPtr any, filter map[string]an
 	return rows, err
 }
 
-func (h *dbContext) migrate() error {
+func (h *dbContext) Migrate() error {
 	if h.isMigratedDone {
 		return nil
 	}
@@ -347,7 +347,7 @@ func (h *dbContext) healthCheck() error {
 			return err
 		}
 	} else {
-		return h.migrate()
+		return h.Migrate()
 	}
 	return nil
 }

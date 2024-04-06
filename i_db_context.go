@@ -15,4 +15,5 @@ type IDbContext interface {
 	Enqueue(ctx context.Context, id string, entity any, info string) error
 	Dequeue(ctx context.Context) error
 	Sql(ctx context.Context, query string, args ...any) error
+	Migrate() error
 }
